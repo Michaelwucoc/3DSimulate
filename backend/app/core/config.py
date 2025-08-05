@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Redis配置
     redis_url: str = "redis://localhost:6379/0"
     
+    
     # 文件存储配置
     upload_dir: str = "./uploads"
     models_dir: str = "./models"
