@@ -1,0 +1,22 @@
+# Web框架
+fastapi>=0.100.0
+uvicorn[standard]>=0.20.0
+python-multipart>=0.0.6
+
+# 数据库
+sqlalchemy>=2.0.0
+alembic>=1.10.0
+
+# 文件处理
+pillow>=9.0.0
+opencv-python>=4.7.0
+numpy>=1.21.0
+
+# 工具库
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# 其他
+requests>=2.28.0
+aiofiles>=23.0.0 
