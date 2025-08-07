@@ -7,6 +7,7 @@ export interface UploadFile {
   file: File
   preview?: string
   uploadedAt: Date
+  progress?: number
 }
 
 // 3D重建任务状态
@@ -19,6 +20,7 @@ export interface ReconstructionTask {
   createdAt: Date
   completedAt?: Date
   result?: ReconstructionResult
+  method: 'nerf' | '3dgs' // NeRF 或 3D Gaussian Splatting
 }
 
 // 3D重建结果
@@ -26,9 +28,11 @@ export interface ReconstructionResult {
   id: string
   modelUrl: string
   thumbnailUrl: string
+  format: 'ply' | 'obj' | 'gltf' | 'splat' // 支持多种3D格式
   metadata: {
     vertices: number
-    faces: number
+    faces?: number
+    points?: number // 用于点云
     boundingBox: {
       min: [number, number, number]
       max: [number, number, number]
@@ -36,12 +40,14 @@ export interface ReconstructionResult {
     cameraPositions: Array<{
       position: [number, number, number]
       rotation: [number, number, number]
+      fov: number
     }>
   }
   statistics: {
     processingTime: number
     memoryUsage: number
     quality: 'low' | 'medium' | 'high'
+    method: 'nerf' | '3dgs'
   }
 }
 
@@ -51,27 +57,39 @@ export interface SceneControls {
     position: [number, number, number]
     rotation: [number, number, number]
     fov: number
+    near: number
+    far: number
+    speed: number
   }
   lighting: {
     ambient: number
     directional: number
     shadows: boolean
+    shadowMapSize: number
   }
   rendering: {
     quality: 'low' | 'medium' | 'high'
     antialiasing: boolean
     shadows: boolean
+    toneMapping: boolean
+  }
+  helpers: {
+    grid: boolean
+    axes: boolean
+    stats: boolean
   }
 }
 
 // 测量工具
 export interface Measurement {
   id: string
-  type: 'distance' | 'angle' | 'area'
+  type: 'distance' | 'angle' | 'area' | 'volume'
   points: Array<[number, number, number]>
   value: number
   unit: string
   color: string
+  label?: string
+  visible: boolean
 }
 
 // 标注工具
@@ -81,14 +99,27 @@ export interface Annotation {
   text: string
   color: string
   visible: boolean
+  type: 'point' | 'text' | 'arrow'
+  size: number
+}
+
+// 相机预设
+export interface CameraPreset {
+  id: string
+  name: string
+  position: [number, number, number]
+  target: [number, number, number]
+  fov: number
+  description?: string
 }
 
 // API响应类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
   message?: string
+  timestamp: string
 }
 
 // 上传响应
@@ -98,6 +129,7 @@ export interface UploadResponse {
     id: string
     name: string
     url: string
+    size: number
   }>
 }
 
@@ -108,37 +140,83 @@ export interface TaskStatusResponse {
   progress: number
   message: string
   result?: ReconstructionResult
+  estimatedTimeRemaining?: number
 }
 
 // 3D模型数据
 export interface ModelData {
   vertices: Float32Array
-  indices: Uint32Array
+  indices?: Uint32Array
   normals: Float32Array
-  uvs: Float32Array
-  materials: Array<{
+  uvs?: Float32Array
+  colors?: Float32Array
+  materials?: Array<{
     name: string
     diffuse: [number, number, number]
     specular: [number, number, number]
     shininess: number
     textureUrl?: string
+    opacity?: number
   }>
 }
 
-// 相机预设
-export interface CameraPreset {
-  id: string
-  name: string
-  position: [number, number, number]
-  target: [number, number, number]
-  fov: number
+// Gaussian Splatting 特定数据
+export interface GaussianSplattingData {
+  positions: Float32Array
+  rotations: Float32Array
+  scales: Float32Array
+  colors: Float32Array
+  opacities: Float32Array
+  count: number
+}
+
+// NeRF 特定数据
+export interface NeRFData {
+  networkWeights: ArrayBuffer
+  boundingBox: {
+    min: [number, number, number]
+    max: [number, number, number]
+  }
+  resolution: [number, number, number]
+  viewDependency: boolean
 }
 
 // 用户设置
 export interface UserSettings {
   theme: 'light' | 'dark' | 'auto'
-  language: string
+  language: 'zh' | 'en'
   quality: 'low' | 'medium' | 'high'
   autoSave: boolean
   shortcuts: Record<string, string>
-} 
+  defaultMethod: 'nerf' | '3dgs'
+  maxFileSize: number // MB
+  maxFiles: number
+}
+
+// 项目配置
+export interface ProjectConfig {
+  name: string
+  description?: string
+  createdAt: Date
+  updatedAt: Date
+  tasks: ReconstructionTask[]
+  settings: UserSettings
+}
+
+// 导出格式选项
+export interface ExportOptions {
+  format: 'ply' | 'obj' | 'gltf' | 'fbx' | 'stl'
+  quality: 'low' | 'medium' | 'high'
+  includeTextures: boolean
+  includeAnimations: boolean
+  compression: boolean
+}
+
+// 性能监控
+export interface PerformanceMetrics {
+  fps: number
+  memoryUsage: number
+  renderTime: number
+  triangleCount: number
+  drawCalls: number
+}

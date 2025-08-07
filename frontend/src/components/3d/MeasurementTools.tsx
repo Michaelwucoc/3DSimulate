@@ -1,197 +1,201 @@
-import React, { useState, useRef } from 'react'
-import { useThree, useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { Measurement } from '../../types'
+import React, { useState } from 'react'
+import { X, Ruler, Triangle, Square, Box, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import type { Measurement } from '../../types'
+import { generateId } from '../../lib/utils'
 
 interface MeasurementToolsProps {
-  measurements?: Measurement[]
-  onMeasurementAdd?: (measurement: Measurement) => void
-  onMeasurementRemove?: (id: string) => void
+  onClose: () => void
 }
 
-export function MeasurementTools({ 
-  measurements = [], 
-  onMeasurementAdd, 
-  onMeasurementRemove 
-}: MeasurementToolsProps) {
-  const { camera, raycaster, mouse, gl } = useThree()
+export function MeasurementTools({ onClose }: MeasurementToolsProps) {
+  const [measurements, setMeasurements] = useState<Measurement[]>([])
+  const [selectedTool, setSelectedTool] = useState<Measurement['type']>('distance')
   const [isActive, setIsActive] = useState(false)
-  const [currentPoints, setCurrentPoints] = useState<THREE.Vector3[]>([])
-  const [hoveredPoint, setHoveredPoint] = useState<THREE.Vector3 | null>(null)
 
-  // 鼠标点击处理
-  const handleClick = () => {
-    if (!isActive) return
+  const addMeasurement = (type: Measurement['type']) => {
+    const newMeasurement: Measurement = {
+      id: generateId(),
+      type,
+      points: [],
+      value: 0,
+      unit: type === 'distance' ? 'm' : type === 'angle' ? '°' : type === 'area' ? 'm²' : 'm³',
+      color: '#ff6b6b',
+      visible: true
+    }
+    setMeasurements(prev => [...prev, newMeasurement])
+  }
 
-    if (currentPoints.length < 2) {
-      // 添加新点
-      if (hoveredPoint) {
-        setCurrentPoints(prev => [...prev, hoveredPoint.clone()])
-      }
-    } else {
-      // 完成测量
-      if (onMeasurementAdd && currentPoints.length >= 2) {
-        const distance = currentPoints[0].distanceTo(currentPoints[1])
-        const measurement: Measurement = {
-          id: Math.random().toString(36).substr(2, 9),
-          type: 'distance',
-          points: currentPoints.map(p => [p.x, p.y, p.z]),
-          value: distance,
-          unit: 'm',
-          color: '#ff0000'
-        }
-        onMeasurementAdd(measurement)
-      }
-      setCurrentPoints([])
+  const deleteMeasurement = (id: string) => {
+    setMeasurements(prev => prev.filter(m => m.id !== id))
+  }
+
+  const toggleMeasurementVisibility = (id: string) => {
+    setMeasurements(prev => prev.map(m => 
+      m.id === id ? { ...m, visible: !m.visible } : m
+    ))
+  }
+
+  const clearAllMeasurements = () => {
+    setMeasurements([])
+  }
+
+  const getToolIcon = (type: Measurement['type']) => {
+    switch (type) {
+      case 'distance': return <Ruler className="h-4 w-4" />
+      case 'angle': return <Triangle className="h-4 w-4" />
+      case 'area': return <Square className="h-4 w-4" />
+      case 'volume': return <Box className="h-4 w-4" />
+      default: return <Ruler className="h-4 w-4" />
     }
   }
 
-  // 鼠标移动处理
-  useFrame(() => {
-    if (!isActive) return
-
-    // 更新鼠标位置
-    raycaster.setFromCamera(mouse, camera)
-
-    // 检测与场景中物体的交点
-    const intersects = raycaster.intersectObjects(gl.scene.children, true)
-    
-    if (intersects.length > 0) {
-      setHoveredPoint(intersects[0].point)
-    } else {
-      setHoveredPoint(null)
+  const getToolName = (type: Measurement['type']) => {
+    switch (type) {
+      case 'distance': return '距离测量'
+      case 'angle': return '角度测量'
+      case 'area': return '面积测量'
+      case 'volume': return '体积测量'
+      default: return '测量'
     }
-  })
-
-  // 计算两点间距离
-  const calculateDistance = (point1: THREE.Vector3, point2: THREE.Vector3): number => {
-    return point1.distanceTo(point2)
-  }
-
-  // 计算三点间角度
-  const calculateAngle = (point1: THREE.Vector3, point2: THREE.Vector3, point3: THREE.Vector3): number => {
-    const v1 = point1.clone().sub(point2)
-    const v2 = point3.clone().sub(point2)
-    return v1.angleTo(v2) * (180 / Math.PI)
   }
 
   return (
-    <>
-      {/* 当前测量点 */}
-      {currentPoints.map((point, index) => (
-        <mesh key={index} position={point}>
-          <sphereGeometry args={[0.05, 16, 16]} />
-          <meshBasicMaterial color="#ff0000" />
-        </mesh>
-      ))}
+    <Card className="w-80 bg-white/95 backdrop-blur-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">测量工具</CardTitle>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* 工具选择 */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">测量类型</label>
+          <Select value={selectedTool} onValueChange={(value) => setSelectedTool(value as Measurement['type'])}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="distance">距离测量</SelectItem>
+              <SelectItem value="angle">角度测量</SelectItem>
+              <SelectItem value="area">面积测量</SelectItem>
+              <SelectItem value="volume">体积测量</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* 悬停点 */}
-      {hoveredPoint && (
-        <mesh position={hoveredPoint}>
-          <sphereGeometry args={[0.03, 16, 16]} />
-          <meshBasicMaterial color="#00ff00" />
-        </mesh>
-      )}
+        {/* 操作按钮 */}
+        <div className="flex space-x-2">
+          <Button
+            variant={isActive ? "default" : "outline"}
+            onClick={() => {
+              setIsActive(!isActive)
+              if (!isActive) {
+                addMeasurement(selectedTool)
+              }
+            }}
+            className="flex-1"
+          >
+            {getToolIcon(selectedTool)}
+            <span className="ml-2">
+              {isActive ? '停止测量' : '开始测量'}
+            </span>
+          </Button>
+          
+          {measurements.length > 0 && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={clearAllMeasurements}
+              title="清除所有测量"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
 
-      {/* 测量线 */}
-      {currentPoints.length >= 1 && hoveredPoint && (
-        <line>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={2}
-              array={new Float32Array([
-                currentPoints[0].x, currentPoints[0].y, currentPoints[0].z,
-                hoveredPoint.x, hoveredPoint.y, hoveredPoint.z
-              ])}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial color="#ff0000" />
-        </line>
-      )}
+        {/* 测量说明 */}
+        {isActive && (
+          <div className="p-3 bg-muted rounded-lg">
+            <div className="text-sm text-muted-foreground">
+              {selectedTool === 'distance' && '点击两个点来测量距离'}
+              {selectedTool === 'angle' && '点击三个点来测量角度'}
+              {selectedTool === 'area' && '点击多个点来测量面积'}
+              {selectedTool === 'volume' && '选择一个区域来测量体积'}
+            </div>
+          </div>
+        )}
 
-      {/* 已完成的测量 */}
-      {measurements.map(measurement => (
-        <MeasurementDisplay
-          key={measurement.id}
-          measurement={measurement}
-          onRemove={() => onMeasurementRemove?.(measurement.id)}
-        />
-      ))}
-    </>
+        {/* 测量结果列表 */}
+        {measurements.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">测量结果</span>
+              <span className="text-xs text-muted-foreground">{measurements.length} 项</span>
+            </div>
+            
+            <div className="max-h-48 overflow-y-auto space-y-2">
+              {measurements.map((measurement) => (
+                <div
+                  key={measurement.id}
+                  className="flex items-center justify-between p-2 bg-muted rounded-lg"
+                >
+                  <div className="flex items-center space-x-2">
+                    {getToolIcon(measurement.type)}
+                    <div>
+                      <div className="text-sm font-medium">
+                        {getToolName(measurement.type)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {measurement.value.toFixed(2)} {measurement.unit}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleMeasurementVisibility(measurement.id)}
+                      className="h-6 w-6"
+                    >
+                      {measurement.visible ? (
+                        <Eye className="h-3 w-3" />
+                      ) : (
+                        <EyeOff className="h-3 w-3" />
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMeasurement(measurement.id)}
+                      className="h-6 w-6 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 空状态 */}
+        {measurements.length === 0 && !isActive && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Ruler className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <div className="text-sm">暂无测量数据</div>
+            <div className="text-xs">选择测量类型并开始测量</div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
-
-// 测量显示组件
-interface MeasurementDisplayProps {
-  measurement: Measurement
-  onRemove?: () => void
-}
-
-function MeasurementDisplay({ measurement, onRemove }: MeasurementDisplayProps) {
-  const { camera } = useThree()
-  const [isVisible, setIsVisible] = useState(true)
-
-  if (!isVisible) return null
-
-  return (
-    <group>
-      {/* 测量点 */}
-      {measurement.points.map((point, index) => (
-        <mesh key={index} position={new THREE.Vector3(...point)}>
-          <sphereGeometry args={[0.05, 16, 16]} />
-          <meshBasicMaterial color={measurement.color} />
-        </mesh>
-      ))}
-
-      {/* 测量线 */}
-      {measurement.points.length >= 2 && (
-        <line>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={measurement.points.length}
-              array={new Float32Array(measurement.points.flat())}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial color={measurement.color} />
-        </line>
-      )}
-
-      {/* 测量标签 */}
-      {measurement.points.length >= 2 && (
-        <MeasurementLabel
-          measurement={measurement}
-          onRemove={onRemove}
-        />
-      )}
-    </group>
-  )
-}
-
-// 测量标签组件
-interface MeasurementLabelProps {
-  measurement: Measurement
-  onRemove?: () => void
-}
-
-function MeasurementLabel({ measurement, onRemove }: MeasurementLabelProps) {
-  const { camera } = useThree()
-  
-  // 计算标签位置（两点中点）
-  const midPoint = new THREE.Vector3()
-  if (measurement.points.length >= 2) {
-    const p1 = new THREE.Vector3(...measurement.points[0])
-    const p2 = new THREE.Vector3(...measurement.points[1])
-    midPoint.lerpVectors(p1, p2, 0.5)
-  }
-
-  return (
-    <group position={midPoint}>
-      {/* 这里可以添加HTML标签显示测量值 */}
-      {/* 由于Three.js的限制，实际标签需要通过HTML overlay实现 */}
-    </group>
-  )
-} 

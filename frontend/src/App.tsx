@@ -1,341 +1,303 @@
-import React, { useState } from 'react'
-import { FileUpload } from './components/FileUpload'
-import { Scene3D } from './components/3d/Scene3D'
-import { useReconstruction } from './hooks/useReconstruction'
-import type { ReconstructionResult } from './types'
+import React, { useState, useCallback } from 'react'
+import { Upload, Play, Settings, Info } from 'lucide-react'
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
 import { Progress } from './components/ui/progress'
-import { 
-  Upload, 
-  Box, 
-  Settings, 
-  Play, 
-  Pause, 
-  RotateCcw,
-  Download,
-  Eye,
-  EyeOff
-} from 'lucide-react'
+import { FileUpload } from './components/FileUpload'
+import { Scene3D } from './components/3d/Scene3D'
+import type { UploadFile, ReconstructionTask, ReconstructionResult } from './types'
+import { generateId } from './lib/utils'
+import { api } from './lib/api'
 
 function App() {
-  const [currentView, setCurrentView] = useState<'upload' | 'reconstruction' | 'viewer'>('upload')
-  const [currentModel, setCurrentModel] = useState<ReconstructionResult | null>(null)
-  const [showControls, setShowControls] = useState(true)
+  const [files, setFiles] = useState<UploadFile[]>([])
+  const [currentTask, setCurrentTask] = useState<ReconstructionTask | null>(null)
+  const [result, setResult] = useState<ReconstructionResult | null>(null)
+  const [activeTab, setActiveTab] = useState<'upload' | 'process' | 'view'>('upload')
+  const [reconstructionMethod, setReconstructionMethod] = useState<'nerf' | '3dgs'>('3dgs')
 
-  const {
-    tasks,
-    currentTask,
-    isPolling,
-    error,
-    createTask,
-    startPolling,
-    stopPolling,
-    deleteTask,
-    restartTask
-  } = useReconstruction({ autoStart: true })
+  // 处理文件上传
+  const handleFilesChange = useCallback((uploadedFiles: UploadFile[]) => {
+    setFiles(uploadedFiles)
+  }, [])
 
-  const handleUploadComplete = (fileIds: string[]) => {
-    console.log('Files uploaded:', fileIds)
-    // 这里可以显示上传成功的消息
-  }
+  // 轮询任务状态
+  const pollTaskStatus = useCallback(async (taskId: string) => {
+    const poll = async () => {
+      try {
+        const response = await api.getTaskStatus(taskId)
+        
+        if (!response.success || !response.data) {
+          throw new Error(response.error || '获取任务状态失败')
+        }
 
-  const handleStartReconstruction = async (fileIds: string[]) => {
-    console.log('Starting reconstruction with files:', fileIds)
-    setCurrentView('reconstruction')
+        const { status, progress, message, result } = response.data
+        
+        setCurrentTask(prev => prev ? {
+          ...prev,
+          status,
+          progress,
+          message
+        } : null)
+
+        if (status === 'completed' && result) {
+          setResult(result)
+          setActiveTab('view')
+          return // 停止轮询
+        } else if (status === 'failed') {
+          return // 停止轮询
+        }
+        
+        // 继续轮询
+        setTimeout(poll, 2000)
+        
+      } catch (error) {
+        setCurrentTask(prev => prev ? {
+          ...prev,
+          status: 'failed',
+          message: error instanceof Error ? error.message : '获取状态失败'
+        } : null)
+      }
+    }
     
-    const taskId = await createTask(fileIds)
-    if (taskId) {
-      startPolling(taskId)
+    poll()
+  }, [])
+
+  // 开始3D重建
+  const startReconstruction = useCallback(async () => {
+    if (files.length === 0) return
+
+    const task: ReconstructionTask = {
+      id: generateId(),
+      status: 'processing',
+      progress: 0,
+      message: '正在上传文件...',
+      files,
+      createdAt: new Date(),
+      method: reconstructionMethod
     }
-  }
 
-  const handleReconstructionComplete = (result: ReconstructionResult) => {
-    setCurrentModel(result)
-    setCurrentView('viewer')
-  }
+    setCurrentTask(task)
+    setActiveTab('process')
 
-  const handleExportModel = () => {
-    if (currentModel) {
-      // 创建下载链接
-      const link = document.createElement('a')
-      link.href = currentModel.modelUrl
-      link.download = `3d-model-${currentModel.id}.glb`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+    try {
+      // 上传文件
+      const uploadResponse = await api.uploadFiles(files.map(f => f.file))
+      
+      if (!uploadResponse.success || !uploadResponse.data) {
+        throw new Error(uploadResponse.error || '文件上传失败')
+      }
+
+      const taskId = uploadResponse.data.taskId
+      
+      // 更新任务ID
+      const updatedTask = { ...task, id: taskId, message: '文件上传成功，开始重建...' }
+      setCurrentTask(updatedTask)
+
+      // 开始重建
+      const startResponse = await api.startReconstruction(taskId, reconstructionMethod)
+      
+      if (!startResponse.success) {
+        throw new Error(startResponse.error || '启动重建失败')
+      }
+
+      // 开始轮询任务状态
+      pollTaskStatus(taskId)
+      
+    } catch (error) {
+      setCurrentTask({
+        ...task,
+        status: 'failed',
+        message: error instanceof Error ? error.message : '处理失败'
+      })
     }
-  }
+  }, [files, reconstructionMethod, pollTaskStatus])
 
-  const handleResetCamera = () => {
-    // 重置相机位置的逻辑
-    console.log('Resetting camera')
-  }
+  // 重新开始
+  const restart = useCallback(() => {
+    setFiles([])
+    setCurrentTask(null)
+    setResult(null)
+    setActiveTab('upload')
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* 顶部导航栏 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Box className="w-8 h-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">3D场景重建平台</h1>
+    <div className="min-h-screen bg-white">
+      {/* 头部 */}
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">3D</span>
+                </div>
+                <h1 className="text-xl font-bold">3D场景重建平台</h1>
+              </div>
+              
+              {/* 导航标签 */}
+              <nav className="flex space-x-1">
+                <Button
+                  variant={activeTab === 'upload' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('upload')}
+                  className="flex items-center space-x-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>上传文件</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'process' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('process')}
+                  disabled={!currentTask}
+                  className="flex items-center space-x-2"
+                >
+                  <Play className="h-4 w-4" />
+                  <span>处理进度</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'view' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('view')}
+                  disabled={!result}
+                  className="flex items-center space-x-2"
+                >
+                  <Info className="h-4 w-4" />
+                  <span>3D查看器</span>
+                </Button>
+              </nav>
             </div>
             
-            <nav className="flex space-x-4">
-              <Button
-                variant={currentView === 'upload' ? 'default' : 'ghost'}
-                onClick={() => setCurrentView('upload')}
-                className="flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                上传文件
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={restart}>
+                重新开始
               </Button>
-              <Button
-                variant={currentView === 'reconstruction' ? 'default' : 'ghost'}
-                onClick={() => setCurrentView('reconstruction')}
-                className="flex items-center gap-2"
-              >
-                <Settings className="w-4 h-4" />
-                重建任务
+              <Button variant="ghost" size="icon">
+                <Settings className="h-4 w-4" />
               </Button>
-              <Button
-                variant={currentView === 'viewer' ? 'default' : 'ghost'}
-                onClick={() => setCurrentView('viewer')}
-                className="flex items-center gap-2"
-                disabled={!currentModel}
-              >
-                <Eye className="w-4 h-4" />
-                3D查看器
-              </Button>
-            </nav>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* 主要内容区域 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentView === 'upload' && (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                上传文件进行3D重建
-              </h2>
-              <p className="text-gray-600">
-                上传视频文件或图片，我们将使用先进的NeRF和3D Gaussian Splatting技术为您生成高质量的3D场景。
-              </p>
-            </div>
-            
-            <FileUpload
-              onUploadComplete={handleUploadComplete}
-              onStartReconstruction={handleStartReconstruction}
-            />
-          </div>
-        )}
-
-        {currentView === 'reconstruction' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">重建任务</h2>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentView('upload')}
-                className="flex items-center gap-2"
-              >
-                <Upload className="w-4 h-4" />
-                上传新文件
-              </Button>
-            </div>
-
-            {/* 当前任务状态 */}
-            {currentTask && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    当前任务: {currentTask.id}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">状态: {currentTask.status}</span>
-                      <span className="text-sm text-gray-500">
-                        {currentTask.createdAt.toLocaleString()}
-                      </span>
-                    </div>
-                    
-                    <Progress value={currentTask.progress} className="w-full" />
-                    
-                    <p className="text-sm text-gray-600">{currentTask.message}</p>
-                    
-                    <div className="flex gap-2">
-                      {currentTask.status === 'processing' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => stopPolling()}
-                        >
-                          <Pause className="w-4 h-4 mr-2" />
-                          暂停
-                        </Button>
-                      )}
-                      
-                      {currentTask.status === 'failed' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => restartTask(currentTask.id)}
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          重试
-                        </Button>
-                      )}
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteTask(currentTask.id)}
-                      >
-                        删除任务
-                      </Button>
-                    </div>
-
-                    {/* 重建完成时显示结果 */}
-                    {currentTask.status === 'completed' && currentTask.result && (
-                      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="font-medium text-green-800">重建完成!</span>
-                        </div>
-                        <p className="text-sm text-green-700 mb-3">
-                          处理时间: {currentTask.result.statistics.processingTime}s
-                        </p>
-                        <Button
-                          onClick={() => handleReconstructionComplete(currentTask.result!)}
-                          className="flex items-center gap-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                          查看3D模型
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 任务列表 */}
-            {tasks.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>历史任务</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {tasks.map(task => (
-                      <div
-                        key={task.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{task.id}</p>
-                          <p className="text-xs text-gray-500">
-                            {task.status} • {task.createdAt.toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteTask(task.id)}
-                          >
-                            删除
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {error && (
-              <Card className="border-red-200 bg-red-50">
-                <CardContent className="pt-6">
-                  <p className="text-red-600">{error}</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {currentView === 'viewer' && currentModel && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">3D场景查看器</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowControls(!showControls)}
-                  className="flex items-center gap-2"
-                >
-                  {showControls ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  {showControls ? '隐藏控制' : '显示控制'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleResetCamera}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  重置相机
-                </Button>
-                <Button
-                  onClick={handleExportModel}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  导出模型
-                </Button>
-              </div>
-            </div>
-
-            {/* 3D场景容器 */}
-            <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
-              <Scene3D
-                modelData={currentModel}
-                onSceneReady={() => console.log('3D scene ready')}
-              />
-            </div>
-
-            {/* 模型信息 */}
+      {/* 主内容区域 */}
+      <main className="container mx-auto px-4 py-6">
+        {activeTab === 'upload' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* 方法选择 */}
             <Card>
               <CardHeader>
-                <CardTitle>模型信息</CardTitle>
+                <CardTitle>选择重建方法</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex space-x-4">
+                  <Button
+                    variant={reconstructionMethod === '3dgs' ? 'default' : 'outline'}
+                    onClick={() => setReconstructionMethod('3dgs')}
+                    className="flex-1"
+                  >
+                    <div className="text-center">
+                      <div className="font-semibold">3D Gaussian Splatting</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        快速重建，适合实时预览
+                      </div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant={reconstructionMethod === 'nerf' ? 'default' : 'outline'}
+                    onClick={() => setReconstructionMethod('nerf')}
+                    className="flex-1"
+                  >
+                    <div className="text-center">
+                      <div className="font-semibold">Neural Radiance Fields</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        高质量重建，处理时间较长
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 文件上传 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>上传文件</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FileUpload
+                  onFilesChange={handleFilesChange}
+                  maxFiles={20}
+                  maxFileSize={500}
+                />
+              </CardContent>
+            </Card>
+
+            {/* 开始处理按钮 */}
+            {files.length > 0 && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={startReconstruction}
+                  size="lg"
+                  className="px-8"
+                >
+                  开始3D重建
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'process' && currentTask && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>处理进度</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold mb-2">
+                    {Math.round(currentTask.progress)}%
+                  </div>
+                  <Progress value={currentTask.progress} className="mb-4" />
+                  <p className="text-muted-foreground">{currentTask.message}</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">顶点数</p>
-                    <p className="text-lg font-semibold">{currentModel.metadata.vertices.toLocaleString()}</p>
+                    <span className="font-semibold">方法:</span> {currentTask.method.toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">面数</p>
-                    <p className="text-lg font-semibold">{currentModel.metadata.faces.toLocaleString()}</p>
+                    <span className="font-semibold">文件数:</span> {currentTask.files.length}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">处理时间</p>
-                    <p className="text-lg font-semibold">{currentModel.statistics.processingTime}s</p>
+                    <span className="font-semibold">开始时间:</span> {currentTask.createdAt.toLocaleTimeString()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">质量</p>
-                    <p className="text-lg font-semibold capitalize">{currentModel.statistics.quality}</p>
+                    <span className="font-semibold">状态:</span> 
+                    <span className={`ml-1 ${
+                      currentTask.status === 'completed' ? 'text-green-600' :
+                      currentTask.status === 'failed' ? 'text-red-600' :
+                      'text-blue-600'
+                    }`}>
+                      {currentTask.status === 'completed' ? '已完成' :
+                       currentTask.status === 'failed' ? '失败' : '处理中'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {activeTab === 'view' && (
+          <div className="h-[calc(100vh-200px)]">
+            <Scene3D
+              result={result || undefined}
+              loading={currentTask?.status === 'processing'}
+              error={currentTask?.status === 'failed' ? currentTask.message : undefined}
+            />
           </div>
         )}
       </main>

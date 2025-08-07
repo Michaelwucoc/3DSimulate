@@ -1,0 +1,14 @@
+2025-08-07 12:55:19,515 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-07 12:55:19,519 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-07 12:55:19,522 - 3d_reconstruction - INFO - 启动3D重建后端服务...
+2025-08-07 12:55:30,423 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-07 12:55:30,426 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-07 12:55:30,429 - 3d_reconstruction - INFO - 启动3D重建后端服务...
+2025-08-07 14:00:08,879 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-07 14:00:08,882 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-07 14:00:08,885 - 3d_reconstruction - INFO - 启动3D重建后端服务...
+2025-08-07 14:00:09,906 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-07 14:00:09,909 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-07 14:00:09,911 - 3d_reconstruction - INFO - 启动3D重建后端服务...
+2025-08-07 14:00:20,821 - 3d_reconstruction - INFO - 任务 582e60e6-08c0-4ffc-807a-d3d9b8307b0c 创建成功，上传了 1 个文件
+2025-08-07 14:00:54,121 - 3d_reconstruction - INFO - 任务 82cac644-d810-4e82-bfd6-326fa3ad91c5 创建成功，上传了 1 个文件

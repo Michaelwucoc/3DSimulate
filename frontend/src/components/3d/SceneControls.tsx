@@ -1,232 +1,216 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { X, Sun, Grid3X3, Eye, Palette } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { 
-  Settings, 
-  Camera, 
-  Lightbulb, 
-  Ruler, 
-  MessageSquare, 
-  Download,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-  Move
-} from 'lucide-react'
+import { Slider } from '../ui/slider'
+import { Switch } from '../ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import type { SceneControls } from '../../types'
 
-interface SceneControlsProps {
-  onToggleStats?: () => void
-  onToggleControls?: () => void
-  onResetCamera?: () => void
-  onExportModel?: () => void
-  onToggleMeasurement?: () => void
-  onToggleAnnotation?: () => void
+interface SceneControlsComponentProps {
+  controls: SceneControls
+  onChange: (controls: SceneControls) => void
+  onClose: () => void
 }
 
-export function SceneControls({
-  onToggleStats,
-  onToggleControls,
-  onResetCamera,
-  onExportModel,
-  onToggleMeasurement,
-  onToggleAnnotation
-}: SceneControlsProps) {
-  const [activeTab, setActiveTab] = useState<'camera' | 'lighting' | 'tools'>('camera')
-  const [measurementMode, setMeasurementMode] = useState(false)
-  const [annotationMode, setAnnotationMode] = useState(false)
-
-  const handleMeasurementToggle = () => {
-    setMeasurementMode(!measurementMode)
-    onToggleMeasurement?.()
+export function SceneControlsComponent({ controls, onChange, onClose }: SceneControlsComponentProps) {
+  const updateControls = (updates: Partial<SceneControls>) => {
+    onChange({ ...controls, ...updates })
   }
 
-  const handleAnnotationToggle = () => {
-    setAnnotationMode(!annotationMode)
-    onToggleAnnotation?.()
+  const updateLighting = (updates: Partial<SceneControls['lighting']>) => {
+    updateControls({
+      lighting: { ...controls.lighting, ...updates }
+    })
+  }
+
+  const updateRendering = (updates: Partial<SceneControls['rendering']>) => {
+    updateControls({
+      rendering: { ...controls.rendering, ...updates }
+    })
+  }
+
+  const updateCamera = (updates: Partial<SceneControls['camera']>) => {
+    updateControls({
+      camera: { ...controls.camera, ...updates }
+    })
   }
 
   return (
-    <div className="absolute top-4 right-4 z-10">
-      <Card className="w-80 bg-white/90 backdrop-blur-sm border-white/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            场景控制
-          </CardTitle>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {/* 标签页切换 */}
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab('camera')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'camera' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Camera className="w-4 h-4 inline mr-1" />
-              相机
-            </button>
-            <button
-              onClick={() => setActiveTab('lighting')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'lighting' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Lightbulb className="w-4 h-4 inline mr-1" />
-              光照
-            </button>
-            <button
-              onClick={() => setActiveTab('tools')}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'tools' 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Settings className="w-4 h-4 inline mr-1" />
-              工具
-            </button>
+    <Card className="w-80 bg-white/95 backdrop-blur-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">场景设置</CardTitle>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* 照明设置 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Sun className="h-4 w-4" />
+            <span className="font-medium">照明</span>
           </div>
-
-          {/* 相机控制 */}
-          {activeTab === 'camera' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onResetCamera}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  重置相机
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleStats}
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  性能统计
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">相机操作</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex flex-col items-center gap-1 p-2"
-                  >
-                    <Move className="w-4 h-4" />
-                    <span className="text-xs">平移</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex flex-col items-center gap-1 p-2"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span className="text-xs">旋转</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex flex-col items-center gap-1 p-2"
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                    <span className="text-xs">缩放</span>
-                  </Button>
-                </div>
-              </div>
+          
+          <div className="space-y-3 pl-6">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">环境光强度</span>
+              <span className="text-xs text-muted-foreground">{controls.lighting.ambient}</span>
             </div>
-          )}
-
-          {/* 光照控制 */}
-          {activeTab === 'lighting' && (
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">环境光强度</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  defaultValue="0.4"
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">方向光强度</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  defaultValue="1"
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="shadows"
-                  defaultChecked
-                  className="rounded"
-                />
-                <label htmlFor="shadows" className="text-sm text-gray-700">
-                  启用阴影
-                </label>
-              </div>
+            <Slider
+              value={[controls.lighting.ambient]}
+              onValueChange={([value]) => updateLighting({ ambient: value })}
+              min={0}
+              max={2}
+              step={0.1}
+              className="w-full"
+            />
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">主光源强度</span>
+              <span className="text-xs text-muted-foreground">{controls.lighting.directional}</span>
             </div>
-          )}
+            <Slider
+              value={[controls.lighting.directional]}
+              onValueChange={([value]) => updateLighting({ directional: value })}
+              min={0}
+              max={3}
+              step={0.1}
+              className="w-full"
+            />
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">阴影</span>
+              <Switch
+                checked={controls.lighting.shadows}
+                onCheckedChange={(shadows) => updateLighting({ shadows })}
+              />
+            </div>
+          </div>
+        </div>
 
-          {/* 工具控制 */}
-          {activeTab === 'tools' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={measurementMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleMeasurementToggle}
-                  className="flex items-center gap-2"
-                >
-                  <Ruler className="w-4 h-4" />
-                  测量工具
-                </Button>
-                <Button
-                  variant={annotationMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleAnnotationToggle}
-                  className="flex items-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  标注工具
-                </Button>
-              </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onExportModel}
-                className="w-full flex items-center gap-2"
+        {/* 渲染设置 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Eye className="h-4 w-4" />
+            <span className="font-medium">渲染</span>
+          </div>
+          
+          <div className="space-y-3 pl-6">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">抗锯齿</span>
+              <Switch
+                checked={controls.rendering.antialiasing}
+                onCheckedChange={(antialiasing) => updateRendering({ antialiasing })}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">色调映射</span>
+              <Switch
+                checked={controls.rendering.toneMapping}
+                onCheckedChange={(toneMapping) => updateRendering({ toneMapping })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <span className="text-sm">渲染质量</span>
+              <Select
+                value={controls.rendering.quality}
+                onValueChange={(value) => updateRendering({ quality: value as 'low' | 'medium' | 'high' })}
               >
-                <Download className="w-4 h-4" />
-                导出模型
-              </Button>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">低</SelectItem>
+                  <SelectItem value="medium">中</SelectItem>
+                  <SelectItem value="high">高</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        </div>
+
+        {/* 相机设置 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Palette className="h-4 w-4" />
+            <span className="font-medium">相机</span>
+          </div>
+          
+          <div className="space-y-3 pl-6">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">视野角度</span>
+              <span className="text-xs text-muted-foreground">{controls.camera.fov}°</span>
+            </div>
+            <Slider
+              value={[controls.camera.fov]}
+              onValueChange={([value]) => updateCamera({ fov: value })}
+              min={10}
+              max={120}
+              step={1}
+              className="w-full"
+            />
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">移动速度</span>
+              <span className="text-xs text-muted-foreground">{controls.camera.speed}</span>
+            </div>
+            <Slider
+              value={[controls.camera.speed]}
+              onValueChange={([value]) => updateCamera({ speed: value })}
+              min={0.1}
+              max={2}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* 辅助显示 */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Grid3X3 className="h-4 w-4" />
+            <span className="font-medium">辅助显示</span>
+          </div>
+          
+          <div className="space-y-3 pl-6">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">网格</span>
+              <Switch
+                checked={controls.helpers.grid}
+                onCheckedChange={(grid) => updateControls({
+                  helpers: { ...controls.helpers, grid }
+                })}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">坐标轴</span>
+              <Switch
+                checked={controls.helpers.axes}
+                onCheckedChange={(axes) => updateControls({
+                  helpers: { ...controls.helpers, axes }
+                })}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm">统计信息</span>
+              <Switch
+                checked={controls.helpers.stats}
+                onCheckedChange={(stats) => updateControls({
+                  helpers: { ...controls.helpers, stats }
+                })}
+              />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
-} 
+}

@@ -1,212 +1,282 @@
 import React, { useCallback, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { Upload, X, FileVideo, Image, AlertCircle } from 'lucide-react'
 import { Button } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent } from './ui/card'
 import { Progress } from './ui/progress'
-import { Upload, Video, Image, X, File, CheckCircle } from 'lucide-react'
-import { useFileUpload } from '../hooks/useFileUpload'
-import { formatFileSize } from '../lib/utils'
+import type { UploadFile } from '../types'
+import { formatFileSize, isValidVideoFile, isValidImageFile, generateId } from '../lib/utils'
 
 interface FileUploadProps {
-  onUploadComplete?: (fileIds: string[]) => void
-  onStartReconstruction?: (fileIds: string[]) => void
+  onFilesChange: (files: UploadFile[]) => void
+  maxFiles?: number
+  maxFileSize?: number // MB
+  acceptedTypes?: string[]
+  disabled?: boolean
 }
 
-export function FileUpload({ onUploadComplete, onStartReconstruction }: FileUploadProps) {
-  const {
-    files,
-    isUploading,
-    error,
-    addFiles,
-    removeFile,
-    clearFiles,
-    uploadFiles
-  } = useFileUpload({
-    maxFiles: 10,
-    maxFileSize: 500 * 1024 * 1024, // 500MB
-    allowedTypes: ['video', 'image']
-  })
+export function FileUpload({
+  onFilesChange,
+  maxFiles = 10,
+  maxFileSize = 500,
+  acceptedTypes = ['video/*', 'image/*'],
+  disabled = false
+}: FileUploadProps) {
+  const [files, setFiles] = useState<UploadFile[]>([])
+  const [dragOver, setDragOver] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const validateFile = useCallback((file: File): string | null => {
+    // 检查文件大小
+    if (file.size > maxFileSize * 1024 * 1024) {
+      return `文件大小不能超过 ${maxFileSize}MB`
+    }
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    addFiles(acceptedFiles)
-  }, [addFiles])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'video/*': ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'],
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
-    },
-    multiple: true
-  })
-
-  const handleUpload = async () => {
-    setUploadProgress(0)
-    const fileIds = await uploadFiles()
+    // 检查文件类型
+    const isVideo = isValidVideoFile(file)
+    const isImage = isValidImageFile(file)
     
-    if (fileIds.length > 0) {
-      onUploadComplete?.(fileIds)
-      // 模拟上传进度
-      const interval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval)
-            return 100
-          }
-          return prev + 10
-        })
-      }, 200)
+    if (!isVideo && !isImage) {
+      return '只支持视频文件（MP4, AVI, MOV, MKV, WebM）和图片文件（JPEG, PNG, WebP, BMP）'
     }
-  }
 
-  const handleStartReconstruction = () => {
-    if (files.length > 0) {
-      // 这里应该使用实际上传后的文件ID
-      const fileIds = files.map(f => f.id)
-      onStartReconstruction?.(fileIds)
+    return null
+  }, [maxFileSize])
+
+  const processFiles = useCallback(async (fileList: FileList) => {
+    const newFiles: UploadFile[] = []
+    const errors: string[] = []
+
+    // 检查文件数量限制
+    if (files.length + fileList.length > maxFiles) {
+      setError(`最多只能上传 ${maxFiles} 个文件`)
+      return
     }
-  }
 
-  const getFileIcon = (type: 'video' | 'image') => {
-    return type === 'video' ? <Video className="w-4 h-4" /> : <Image className="w-4 h-4" />
-  }
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i]
+      const validationError = validateFile(file)
+      
+      if (validationError) {
+        errors.push(`${file.name}: ${validationError}`)
+        continue
+      }
+
+      // 创建预览
+      let preview: string | undefined
+      if (isValidImageFile(file)) {
+        preview = URL.createObjectURL(file)
+      }
+
+      const uploadFile: UploadFile = {
+        id: generateId(),
+        name: file.name,
+        size: file.size,
+        type: isValidVideoFile(file) ? 'video' : 'image',
+        file,
+        preview,
+        uploadedAt: new Date(),
+        progress: 0
+      }
+
+      newFiles.push(uploadFile)
+    }
+
+    if (errors.length > 0) {
+      setError(errors.join('\n'))
+    } else {
+      setError(null)
+    }
+
+    if (newFiles.length > 0) {
+      const updatedFiles = [...files, ...newFiles]
+      setFiles(updatedFiles)
+      onFilesChange(updatedFiles)
+    }
+  }, [files, maxFiles, validateFile, onFilesChange])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    
+    if (disabled) return
+    
+    const droppedFiles = e.dataTransfer.files
+    if (droppedFiles.length > 0) {
+      processFiles(droppedFiles)
+    }
+  }, [disabled, processFiles])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    if (!disabled) {
+      setDragOver(true)
+    }
+  }, [disabled])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+  }, [])
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files
+    if (selectedFiles && selectedFiles.length > 0) {
+      processFiles(selectedFiles)
+    }
+    // 清空input值，允许重复选择同一文件
+    e.target.value = ''
+  }, [processFiles])
+
+  const removeFile = useCallback((fileId: string) => {
+    const updatedFiles = files.filter(f => f.id !== fileId)
+    setFiles(updatedFiles)
+    onFilesChange(updatedFiles)
+    
+    // 清理预览URL
+    const fileToRemove = files.find(f => f.id === fileId)
+    if (fileToRemove?.preview) {
+      URL.revokeObjectURL(fileToRemove.preview)
+    }
+  }, [files, onFilesChange])
+
+  const clearAll = useCallback(() => {
+    // 清理所有预览URL
+    files.forEach(file => {
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview)
+      }
+    })
+    
+    setFiles([])
+    onFilesChange([])
+    setError(null)
+  }, [files, onFilesChange])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 上传区域 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="w-5 h-5" />
-            上传文件
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            {...getRootProps()}
-            className={`upload-area border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
-              isDragActive ? 'dragover' : ''
-            }`}
-          >
-            <input {...getInputProps()} />
-            <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-lg font-medium text-gray-700 mb-2">
-              {isDragActive ? '释放文件以上传' : '拖拽文件到此处或点击选择'}
-            </p>
-            <p className="text-sm text-gray-500">
-              支持视频文件 (MP4, AVI, MOV, WMV, FLV, WEBM) 和图片文件 (JPEG, PNG, WEBP)
-            </p>
-            <p className="text-xs text-gray-400 mt-2">
-              最大文件大小: 500MB，最多10个文件
-            </p>
-          </div>
+      <div
+        className={`upload-area relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          dragOver ? 'dragover' : ''
+        } ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'
+        }`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={() => !disabled && document.getElementById('file-input')?.click()}
+      >
+        <input
+          id="file-input"
+          type="file"
+          multiple
+          accept={acceptedTypes.join(',')}
+          onChange={handleFileSelect}
+          className="hidden"
+          disabled={disabled}
+        />
+        
+        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">上传文件</h3>
+        <p className="text-muted-foreground mb-4">
+          拖拽文件到此处，或点击选择文件
+        </p>
+        <p className="text-sm text-muted-foreground">
+          支持视频和图片文件，最大 {maxFileSize}MB，最多 {maxFiles} 个文件
+        </p>
+        
+        {!disabled && (
+          <Button type="button" variant="outline" className="mt-4">
+            选择文件
+          </Button>
+        )}
+      </div>
 
-          {/* 错误信息 */}
-          {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-600 text-sm">{error}</p>
+      {/* 错误信息 */}
+      {error && (
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-2 text-destructive">
+              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="text-sm whitespace-pre-line">{error}</div>
             </div>
-          )}
-
-          {/* 上传进度 */}
-          {isUploading && (
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>上传中...</span>
-                <span>{uploadProgress}%</span>
-              </div>
-              <Progress value={uploadProgress} className="w-full" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 文件列表 */}
       {files.length > 0 && (
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <File className="w-5 h-5" />
-                已选择的文件 ({files.length})
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFiles}
-                  disabled={isUploading}
-                >
-                  清空
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleUpload}
-                  disabled={isUploading}
-                >
-                  {isUploading ? '上传中...' : '开始上传'}
-                </Button>
-              </div>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold">已选择文件 ({files.length})</h4>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={clearAll}
+                disabled={disabled}
+              >
+                清空全部
+              </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
+            
+            <div className="space-y-3">
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center space-x-3 p-3 border rounded-lg"
                 >
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(file.type)}
-                    <div>
-                      <p className="font-medium text-sm">{file.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(file.size)} • {file.type}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {file.preview && file.type === 'image' && (
+                  {/* 文件图标/预览 */}
+                  <div className="flex-shrink-0">
+                    {file.type === 'image' && file.preview ? (
                       <img
                         src={file.preview}
                         alt={file.name}
-                        className="w-8 h-8 object-cover rounded"
+                        className="h-12 w-12 object-cover rounded"
                       />
+                    ) : file.type === 'video' ? (
+                      <FileVideo className="h-12 w-12 text-blue-500" />
+                    ) : (
+                      <Image className="h-12 w-12 text-green-500" />
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(file.id)}
-                      disabled={isUploading}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
                   </div>
+                  
+                  {/* 文件信息 */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(file.size)} • {file.type === 'video' ? '视频' : '图片'}
+                    </p>
+                    
+                    {/* 上传进度 */}
+                    {typeof file.progress === 'number' && file.progress < 100 && (
+                      <div className="mt-2">
+                        <Progress value={file.progress} className="h-2" />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          上传中... {file.progress}%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* 删除按钮 */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeFile(file.id)}
+                    disabled={disabled}
+                    className="flex-shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
-
-            {/* 开始重建按钮 */}
-            {files.length > 0 && !isUploading && (
-              <div className="mt-4 pt-4 border-t">
-                <Button
-                  onClick={handleStartReconstruction}
-                  className="w-full"
-                  size="lg"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  开始3D重建
-                </Button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  点击开始使用上传的文件进行3D场景重建
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
     </div>
   )
-} 
+}
