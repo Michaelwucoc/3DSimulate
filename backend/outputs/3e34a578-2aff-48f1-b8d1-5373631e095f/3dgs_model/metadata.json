@@ -1,0 +1,8 @@
+{
+  "method": "3dgs",
+  "iterations": 30000,
+  "data_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/3e34a578-2aff-48f1-b8d1-5373631e095f/3dgs_data",
+  "model_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/3e34a578-2aff-48f1-b8d1-5373631e095f/3dgs_model",
+  "created_at": "2025-08-07T15:35:16.188273",
+  "task_id": "3e34a578-2aff-48f1-b8d1-5373631e095f"
+}

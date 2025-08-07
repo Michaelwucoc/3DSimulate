@@ -26,11 +26,12 @@ from utils.logger import setup_logger
 def setup_directories():
     """创建必要的目录"""
     config = Config()
+    log_folder = os.path.dirname(config.LOG_CONFIG['file_path'])
     directories = [
         config.UPLOAD_FOLDER,
         config.OUTPUT_FOLDER,
         config.TEMP_FOLDER,
-        config.LOG_FOLDER,
+        log_folder,
         os.path.join(config.OUTPUT_FOLDER, 'models'),
         os.path.join(config.OUTPUT_FOLDER, 'thumbnails'),
         os.path.join(config.OUTPUT_FOLDER, 'metadata')

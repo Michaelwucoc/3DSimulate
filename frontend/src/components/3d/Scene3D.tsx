@@ -84,7 +84,7 @@ function SceneContent({ result }: { result?: ReconstructionResult }) {
 
   // 自动调整相机位置以适应模型
   useEffect(() => {
-    if (result?.metadata.boundingBox) {
+    if (result?.metadata?.boundingBox) {
       const { min, max } = result.metadata.boundingBox
       const center = new THREE.Vector3(
         (min[0] + max[0]) / 2,
@@ -411,13 +411,13 @@ export function Scene3D({ result, loading, error }: Scene3DProps) {
           <Card className="bg-white/90 backdrop-blur-sm">
             <CardContent className="p-3">
               <div className="text-xs space-y-1">
-                <div>格式: {result.format.toUpperCase()}</div>
-                <div>顶点: {result.metadata.vertices.toLocaleString()}</div>
-                {result.metadata.faces && (
+                <div>格式: {result.format?.toUpperCase() || 'N/A'}</div>
+                <div>顶点: {result.metadata?.vertices?.toLocaleString() || 'N/A'}</div>
+                {result.metadata?.faces && (
                   <div>面: {result.metadata.faces.toLocaleString()}</div>
                 )}
-                <div>质量: {result.statistics.quality}</div>
-                <div>方法: {result.statistics.method.toUpperCase()}</div>
+                <div>质量: {result.statistics?.quality || 'N/A'}</div>
+                <div>方法: {result.statistics?.method?.toUpperCase() || 'N/A'}</div>
               </div>
             </CardContent>
           </Card>

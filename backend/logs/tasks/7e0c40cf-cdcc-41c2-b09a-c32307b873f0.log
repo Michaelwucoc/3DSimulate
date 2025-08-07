@@ -1,0 +1,62 @@
+2025-08-07 15:30:59,344 - INFO - 开始3D Gaussian Splatting重建任务
+2025-08-07 15:30:59,349 - INFO - 3DGS数据准备完成: /Users/wujian/Documents/3DSimulate/backend/outputs/7e0c40cf-cdcc-41c2-b09a-c32307b873f0/3dgs_data
+2025-08-07 15:30:59,349 - INFO - [15:30:59] Step 'feature_extraction' started
+2025-08-07 15:31:07,524 - INFO - Executing command: colmap feature_extractor --database_path /Users/wujian/Documents/3DSimulate/backend/outputs/7e0c40cf-cdcc-41c2-b09a-c32307b873f0/3dgs_data/database.db --image_path /Users/wujian/Documents/3DSimulate/backend/outputs/7e0c40cf-cdcc-41c2-b09a-c32307b873f0/3dgs_data/images --ImageReader.single_camera 1 --SiftExtraction.use_gpu 1
+2025-08-07 15:31:07,524 - ERROR - Command error: I20250807 15:31:04.784322 7799702 misc.cc:44] 
+==============================================================================
+Feature extraction
+==============================================================================
+I20250807 15:31:06.705777 7799711 sift.cc:721] Creating SIFT GPU feature extractor
+I20250807 15:31:07.495002 7799712 feature_extraction.cc:258] Processed file [1/1]
+I20250807 15:31:07.495043 7799712 feature_extraction.cc:261]   Name:            3ee7d8d3-6859-4f12-a841-52e67ee2035c_fd23f03863a94a2f27eed06485bb2f55_1754551859.jpg
+I20250807 15:31:07.495049 7799712 feature_extraction.cc:270]   Dimensions:      1080 x 1920
+I20250807 15:31:07.495055 7799712 feature_extraction.cc:273]   Camera:          #1 - SIMPLE_RADIAL
+I20250807 15:31:07.495062 7799712 feature_extraction.cc:276]   Focal Length:    2304.00px
+I20250807 15:31:07.495070 7799712 feature_extraction.cc:280]   Features:        7273
+I20250807 15:31:07.501971 7799702 timer.cc:91] Elapsed time: 0.045 [minutes]
+
+2025-08-07 15:31:07,525 - INFO - [15:31:07] Step 'feature_extraction' completed
+2025-08-07 15:31:07,525 - INFO - [15:31:07] Step 'feature_matching' started
+2025-08-07 15:31:07,802 - INFO - Executing command: colmap exhaustive_matcher --database_path /Users/wujian/Documents/3DSimulate/backend/outputs/7e0c40cf-cdcc-41c2-b09a-c32307b873f0/3dgs_data/database.db --SiftMatching.use_gpu 1
+2025-08-07 15:31:07,802 - ERROR - Command error: I20250807 15:31:07.745604 7799904 misc.cc:44] 
+==============================================================================
+Feature matching
+==============================================================================
+I20250807 15:31:07.764581 7799905 sift.cc:1426] Creating SIFT GPU feature matcher
+I20250807 15:31:07.796270 7799904 pairing.cc:168] Generating exhaustive image pairs...
+I20250807 15:31:07.796291 7799904 pairing.cc:201] Matching block [1/1, 1/1]
+I20250807 15:31:07.796547 7799904 feature_matching.cc:46] in 0.000s
+I20250807 15:31:07.796561 7799904 timer.cc:91] Elapsed time: 0.001 [minutes]
+
+2025-08-07 15:31:07,802 - INFO - [15:31:07] Step 'feature_matching' completed
+2025-08-07 15:31:07,802 - INFO - [15:31:07] Step 'sparse_reconstruction' started
+2025-08-07 15:31:07,841 - ERROR - COLMAP处理失败: COLMAP稀疏重建失败: I20250807 15:31:07.838430 7799935 incremental_pipeline.cc:237] Loading database
+I20250807 15:31:07.839774 7799935 database_cache.cc:66] Loading cameras...
+I20250807 15:31:07.839797 7799935 database_cache.cc:76]  1 in 0.000s
+I20250807 15:31:07.839804 7799935 database_cache.cc:84] Loading matches...
+I20250807 15:31:07.839815 7799935 database_cache.cc:89]  0 in 0.000s
+I20250807 15:31:07.839820 7799935 database_cache.cc:105] Loading images...
+I20250807 15:31:07.839843 7799935 database_cache.cc:153]  1 in 0.000s (connected 0)
+I20250807 15:31:07.839849 7799935 database_cache.cc:164] Loading pose priors...
+I20250807 15:31:07.839861 7799935 database_cache.cc:175]  0 in 0.000s
+I20250807 15:31:07.839866 7799935 database_cache.cc:184] Building correspondence graph...
+I20250807 15:31:07.839870 7799935 database_cache.cc:210]  in 0.000s (ignored 0)
+I20250807 15:31:07.839875 7799935 timer.cc:91] Elapsed time: 0.000 [minutes]
+W20250807 15:31:07.839879 7799935 incremental_pipeline.cc:259] No images with matches found in the database
+E20250807 15:31:07.840200 7799935 sfm.cc:288] failed to create sparse model
+
+2025-08-07 15:31:07,841 - ERROR - 3DGS重建失败: COLMAP稀疏重建失败: I20250807 15:31:07.838430 7799935 incremental_pipeline.cc:237] Loading database
+I20250807 15:31:07.839774 7799935 database_cache.cc:66] Loading cameras...
+I20250807 15:31:07.839797 7799935 database_cache.cc:76]  1 in 0.000s
+I20250807 15:31:07.839804 7799935 database_cache.cc:84] Loading matches...
+I20250807 15:31:07.839815 7799935 database_cache.cc:89]  0 in 0.000s
+I20250807 15:31:07.839820 7799935 database_cache.cc:105] Loading images...
+I20250807 15:31:07.839843 7799935 database_cache.cc:153]  1 in 0.000s (connected 0)
+I20250807 15:31:07.839849 7799935 database_cache.cc:164] Loading pose priors...
+I20250807 15:31:07.839861 7799935 database_cache.cc:175]  0 in 0.000s
+I20250807 15:31:07.839866 7799935 database_cache.cc:184] Building correspondence graph...
+I20250807 15:31:07.839870 7799935 database_cache.cc:210]  in 0.000s (ignored 0)
+I20250807 15:31:07.839875 7799935 timer.cc:91] Elapsed time: 0.000 [minutes]
+W20250807 15:31:07.839879 7799935 incremental_pipeline.cc:259] No images with matches found in the database
+E20250807 15:31:07.840200 7799935 sfm.cc:288] failed to create sparse model
+

@@ -156,10 +156,12 @@ export function FileUpload({
     <div className="space-y-4">
       {/* 上传区域 */}
       <div
-        className={`upload-area relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          dragOver ? 'dragover' : ''
+        className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
+          dragOver 
+            ? 'border-blue-400 bg-blue-50/50 scale-[1.02]' 
+            : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50/50'
         } ${
-          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50'
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
         }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -176,20 +178,30 @@ export function FileUpload({
           disabled={disabled}
         />
         
-        <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">上传文件</h3>
-        <p className="text-muted-foreground mb-4">
-          拖拽文件到此处，或点击选择文件
-        </p>
-        <p className="text-sm text-muted-foreground">
-          支持视频和图片文件，最大 {maxFileSize}MB，最多 {maxFiles} 个文件
-        </p>
-        
-        {!disabled && (
-          <Button type="button" variant="outline" className="mt-4">
-            选择文件
-          </Button>
-        )}
+        <div className={`transition-all duration-300 ${
+          dragOver ? 'transform scale-110' : ''
+        }`}>
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6">
+            <Upload className="h-8 w-8 text-white" />
+          </div>
+          
+          <h3 className="text-xl font-bold text-gray-900 mb-3">上传您的文件</h3>
+          <p className="text-gray-600 mb-2 text-lg">
+            拖拽文件到此处，或点击选择文件
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            支持视频和图片文件，最大 {maxFileSize}MB，最多 {maxFiles} 个文件
+          </p>
+          
+          {!disabled && (
+            <Button 
+              type="button" 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              选择文件
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 错误信息 */}
@@ -206,56 +218,78 @@ export function FileUpload({
 
       {/* 文件列表 */}
       {files.length > 0 && (
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold">已选择文件 ({files.length})</h4>
+            <div className="flex items-center justify-between mb-6">
+              <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                已选择文件 ({files.length})
+              </h4>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={clearAll}
                 disabled={disabled}
+                className="hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
               >
                 清空全部
               </Button>
             </div>
             
-            <div className="space-y-3">
-              {files.map((file) => (
+            <div className="grid gap-4">
+              {files.map((file, index) => (
                 <div
                   key={file.id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg"
+                  className="group flex items-center space-x-4 p-4 border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all duration-300 bg-white"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* 文件图标/预览 */}
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 relative">
                     {file.type === 'image' && file.preview ? (
-                      <img
-                        src={file.preview}
-                        alt={file.name}
-                        className="h-12 w-12 object-cover rounded"
-                      />
+                      <div className="relative">
+                        <img
+                          src={file.preview}
+                          alt={file.name}
+                          className="h-16 w-16 object-cover rounded-xl shadow-sm"
+                        />
+                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <Image className="h-3 w-3 text-white" />
+                        </div>
+                      </div>
                     ) : file.type === 'video' ? (
-                      <FileVideo className="h-12 w-12 text-blue-500" />
+                      <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <FileVideo className="h-8 w-8 text-white" />
+                      </div>
                     ) : (
-                      <Image className="h-12 w-12 text-green-500" />
+                      <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <Image className="h-8 w-8 text-white" />
+                      </div>
                     )}
                   </div>
                   
                   {/* 文件信息 */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(file.size)} • {file.type === 'video' ? '视频' : '图片'}
-                    </p>
+                    <p className="text-base font-semibold text-gray-900 truncate mb-1">{file.name}</p>
+                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                        {formatFileSize(file.size)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                        {file.type === 'video' ? '视频文件' : '图片文件'}
+                      </span>
+                    </div>
                     
                     {/* 上传进度 */}
                     {typeof file.progress === 'number' && file.progress < 100 && (
-                      <div className="mt-2">
-                        <Progress value={file.progress} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          上传中... {file.progress}%
-                        </p>
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-blue-600">上传中...</span>
+                          <span className="text-xs font-medium text-blue-600">{file.progress}%</span>
+                        </div>
+                        <Progress value={file.progress} className="h-2 bg-blue-100" />
                       </div>
                     )}
                   </div>
@@ -267,9 +301,9 @@ export function FileUpload({
                     size="icon"
                     onClick={() => removeFile(file.id)}
                     disabled={disabled}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </Button>
                 </div>
               ))}

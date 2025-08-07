@@ -1,0 +1,6 @@
+
+iterations: 30000
+resolution: -1
+sh_degree: 3
+data_device: cuda
+timestamp: 2025-08-07T15:36:45.700748

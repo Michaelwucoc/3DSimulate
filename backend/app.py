@@ -18,31 +18,46 @@ from services.file_service import FileService
 from services.model_converter import ModelConverter
 from utils.config import Config
 from utils.logger import setup_logger
-from models.task import Task, TaskStatus
+from models.task import Task, TaskStatus, UploadedFile
 
-app = Flask(__name__)
-CORS(app)  # 允许跨域请求
+# 全局变量
+tasks: Dict[str, Task] = {}
 
-# 配置
+def create_app():
+    """创建Flask应用实例"""
+    app = Flask(__name__)
+    CORS(app)  # 允许跨域请求
+    
+    # 配置
+    config = Config()
+    logger = setup_logger()
+    
+    # 服务实例
+    file_service = FileService(config)
+    reconstruction_service = ReconstructionService(config)
+    model_converter = ModelConverter(config)
+    
+    # 配置上传文件夹
+    UPLOAD_FOLDER = config.UPLOAD_FOLDER
+    OUTPUT_FOLDER = config.OUTPUT_FOLDER
+    ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'jpg', 'jpeg', 'png', 'webp', 'bmp'}
+    
+    # 确保文件夹存在
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    
+    return app
+
+# 创建应用实例
+app = create_app()
 config = Config()
 logger = setup_logger()
-
-# 服务实例
 file_service = FileService(config)
 reconstruction_service = ReconstructionService(config)
 model_converter = ModelConverter(config)
-
-# 全局任务存储（生产环境应使用数据库）
-tasks: Dict[str, Task] = {}
-
-# 配置上传文件夹
 UPLOAD_FOLDER = config.UPLOAD_FOLDER
 OUTPUT_FOLDER = config.OUTPUT_FOLDER
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'jpg', 'jpeg', 'png', 'webp', 'bmp'}
-
-# 确保文件夹存在
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     """检查文件扩展名是否允许"""
@@ -88,13 +103,15 @@ def upload_files():
                 file_path = os.path.join(task_folder, filename)
                 file.save(file_path)
                 
-                uploaded_files.append({
-                    'id': str(uuid.uuid4()),
-                    'name': filename,
-                    'path': file_path,
-                    'size': os.path.getsize(file_path),
-                    'type': 'video' if filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')) else 'image'
-                })
+                uploaded_file = UploadedFile(
+                    id=str(uuid.uuid4()),
+                    name=filename,
+                    path=file_path,
+                    size=os.path.getsize(file_path),
+                    type='video' if filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')) else 'image',
+                    uploaded_at=datetime.now()
+                )
+                uploaded_files.append(uploaded_file)
         
         if not uploaded_files:
             return jsonify({'error': '没有有效的文件被上传'}), 400

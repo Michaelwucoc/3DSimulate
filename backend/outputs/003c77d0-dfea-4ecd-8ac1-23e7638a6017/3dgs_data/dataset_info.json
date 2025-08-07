@@ -1,0 +1,16 @@
+{
+  "images_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/003c77d0-dfea-4ecd-8ac1-23e7638a6017/3dgs_data/images",
+  "num_images": 1,
+  "source_files": [
+    {
+      "id": "8cdccbd1-9538-4ce6-9149-aa26559ebeac",
+      "name": "fd23f03863a94a2f27eed06485bb2f55_1754551422.jpg",
+      "path": "/Users/wujian/Documents/3DSimulate/backend/uploads/003c77d0-dfea-4ecd-8ac1-23e7638a6017/fd23f03863a94a2f27eed06485bb2f55_1754551422.jpg",
+      "size": 877952,
+      "type": "image",
+      "mime_type": null,
+      "uploaded_at": "2025-08-07T15:23:42.353032"
+    }
+  ],
+  "created_at": "2025-08-07T15:23:42.371328"
+}

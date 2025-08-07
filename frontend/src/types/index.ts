@@ -124,7 +124,7 @@ export interface ApiResponse<T = unknown> {
 
 // 上传响应
 export interface UploadResponse {
-  taskId: string
+  task_id: string
   files: Array<{
     id: string
     name: string

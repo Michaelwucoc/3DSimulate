@@ -1,0 +1,5 @@
+2025-08-07 15:23:42,370 - INFO - 开始3D Gaussian Splatting重建任务
+2025-08-07 15:23:42,371 - INFO - 3DGS数据准备完成: /Users/wujian/Documents/3DSimulate/backend/outputs/003c77d0-dfea-4ecd-8ac1-23e7638a6017/3dgs_data
+2025-08-07 15:23:42,371 - INFO - [15:23:42] Step 'feature_extraction' started
+2025-08-07 15:23:42,377 - ERROR - COLMAP处理失败: [Errno 2] No such file or directory: 'colmap'
+2025-08-07 15:23:42,377 - ERROR - 3DGS重建失败: [Errno 2] No such file or directory: 'colmap'
