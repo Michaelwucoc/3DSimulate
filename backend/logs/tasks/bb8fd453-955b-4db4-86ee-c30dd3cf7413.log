@@ -1,0 +1,71 @@
+2025-08-07 15:47:01,315 - INFO - 开始3D Gaussian Splatting重建任务
+2025-08-07 15:47:01,317 - INFO - 3DGS数据准备完成: /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data
+2025-08-07 15:47:01,317 - INFO - [15:47:01] Step 'feature_extraction' started
+2025-08-07 15:47:02,870 - INFO - Executing command: colmap feature_extractor --database_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/database.db --image_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/images --ImageReader.single_camera 1 --SiftExtraction.use_gpu 1
+2025-08-07 15:47:02,871 - ERROR - Command error: I20250807 15:47:01.859447 7866676 misc.cc:44] 
+==============================================================================
+Feature extraction
+==============================================================================
+I20250807 15:47:01.917152 7866685 sift.cc:721] Creating SIFT GPU feature extractor
+I20250807 15:47:02.361898 7866686 feature_extraction.cc:258] Processed file [1/3]
+I20250807 15:47:02.361951 7866686 feature_extraction.cc:261]   Name:            7dbaa4be-2e34-4016-9ca2-bec30f0b9997_a38a20ebcf19861bbc6f6f485cfb756d_1754552821.jpg
+I20250807 15:47:02.361959 7866686 feature_extraction.cc:270]   Dimensions:      1706 x 1279
+I20250807 15:47:02.361963 7866686 feature_extraction.cc:273]   Camera:          #1 - SIMPLE_RADIAL
+I20250807 15:47:02.361974 7866686 feature_extraction.cc:276]   Focal Length:    2047.20px
+I20250807 15:47:02.361980 7866686 feature_extraction.cc:280]   Features:        10253
+I20250807 15:47:02.683776 7866686 feature_extraction.cc:258] Processed file [2/3]
+I20250807 15:47:02.683817 7866686 feature_extraction.cc:261]   Name:            ac50d9be-3189-4e11-abf4-49cd7a350f4d_a404e186f27bf826a980c67ff46f3d27_1754552821.jpg
+I20250807 15:47:02.683825 7866686 feature_extraction.cc:270]   Dimensions:      1706 x 1279
+I20250807 15:47:02.683830 7866686 feature_extraction.cc:273]   Camera:          #1 - SIMPLE_RADIAL
+I20250807 15:47:02.683835 7866686 feature_extraction.cc:276]   Focal Length:    2047.20px
+I20250807 15:47:02.683841 7866686 feature_extraction.cc:280]   Features:        10117
+I20250807 15:47:02.825579 7866686 feature_extraction.cc:258] Processed file [3/3]
+I20250807 15:47:02.825611 7866686 feature_extraction.cc:261]   Name:            e6fc34e3-c2de-4df4-b09b-3c891be2bbf3_28c6b8b28757a922466acf3b6c5056a6_1754552821.jpg
+I20250807 15:47:02.825618 7866686 feature_extraction.cc:270]   Dimensions:      1706 x 1279
+I20250807 15:47:02.825623 7866686 feature_extraction.cc:273]   Camera:          #1 - SIMPLE_RADIAL
+I20250807 15:47:02.825628 7866686 feature_extraction.cc:276]   Focal Length:    2047.20px
+I20250807 15:47:02.825634 7866686 feature_extraction.cc:280]   Features:        10042
+I20250807 15:47:02.842759 7866676 timer.cc:91] Elapsed time: 0.016 [minutes]
+
+2025-08-07 15:47:02,871 - INFO - [15:47:02] Step 'feature_extraction' completed
+2025-08-07 15:47:02,871 - INFO - [15:47:02] Step 'feature_matching' started
+2025-08-07 15:47:03,431 - INFO - Executing command: colmap exhaustive_matcher --database_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/database.db --SiftMatching.use_gpu 1
+2025-08-07 15:47:03,431 - ERROR - Command error: I20250807 15:47:03.101912 7866818 misc.cc:44] 
+==============================================================================
+Feature matching
+==============================================================================
+I20250807 15:47:03.128454 7866819 sift.cc:1426] Creating SIFT GPU feature matcher
+I20250807 15:47:03.159834 7866818 pairing.cc:168] Generating exhaustive image pairs...
+I20250807 15:47:03.159853 7866818 pairing.cc:201] Matching block [1/1, 1/1]
+I20250807 15:47:03.413214 7866818 feature_matching.cc:46] in 0.253s
+I20250807 15:47:03.413427 7866818 timer.cc:91] Elapsed time: 0.005 [minutes]
+
+2025-08-07 15:47:03,431 - INFO - [15:47:03] Step 'feature_matching' completed
+2025-08-07 15:47:03,431 - INFO - [15:47:03] Step 'sparse_reconstruction' started
+2025-08-07 15:47:03,601 - INFO - Executing command: colmap mapper --database_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/database.db --image_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/images --output_path /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_data/sparse
+2025-08-07 15:47:03,601 - ERROR - Command error: I20250807 15:47:03.470731 7866858 incremental_pipeline.cc:237] Loading database
+I20250807 15:47:03.471872 7866858 database_cache.cc:66] Loading cameras...
+I20250807 15:47:03.471894 7866858 database_cache.cc:76]  1 in 0.000s
+I20250807 15:47:03.471901 7866858 database_cache.cc:84] Loading matches...
+I20250807 15:47:03.471939 7866858 database_cache.cc:89]  3 in 0.000s
+I20250807 15:47:03.471946 7866858 database_cache.cc:105] Loading images...
+I20250807 15:47:03.472410 7866858 database_cache.cc:153]  3 in 0.000s (connected 3)
+I20250807 15:47:03.472419 7866858 database_cache.cc:164] Loading pose priors...
+I20250807 15:47:03.472437 7866858 database_cache.cc:175]  0 in 0.000s
+I20250807 15:47:03.472442 7866858 database_cache.cc:184] Building correspondence graph...
+I20250807 15:47:03.472764 7866858 database_cache.cc:210]  in 0.000s (ignored 0)
+I20250807 15:47:03.472772 7866858 timer.cc:91] Elapsed time: 0.000 [minutes]
+I20250807 15:47:03.473580 7866858 incremental_pipeline.cc:282] Finding good initial image pair
+I20250807 15:47:03.494114 7866858 incremental_pipeline.cc:306] Initializing with image pair #3 and #2
+I20250807 15:47:03.495127 7866858 incremental_pipeline.cc:311] Global bundle adjustment
+I20250807 15:47:03.549877 7866858 incremental_pipeline.cc:390] Registering image #1 (3)
+I20250807 15:47:03.549898 7866858 incremental_pipeline.cc:393] => Image sees 102 / 1118 points
+I20250807 15:47:03.580788 7866858 incremental_pipeline.cc:42] Retriangulation and Global bundle adjustment
+I20250807 15:47:03.599630 7866858 timer.cc:91] Elapsed time: 0.002 [minutes]
+
+2025-08-07 15:47:03,601 - INFO - [15:47:03] Step 'sparse_reconstruction' completed
+2025-08-07 15:47:03,601 - INFO - 开始训练3D Gaussian Splatting模型
+2025-08-07 15:47:04,642 - INFO - 3DGS模型训练完成: /Users/wujian/Documents/3DSimulate/backend/outputs/bb8fd453-955b-4db4-86ee-c30dd3cf7413/3dgs_model
+2025-08-07 15:47:04,643 - INFO - 开始导出3DGS结果
+2025-08-07 15:47:04,643 - INFO - 3DGS结果导出完成
+2025-08-07 15:47:04,644 - INFO - 3DGS重建完成，耗时: 3.33秒

@@ -15,6 +15,7 @@ import {
 import { SceneControlsComponent } from './SceneControls'
 import { MeasurementTools } from './MeasurementTools'
 import { AnnotationTools } from './AnnotationTools'
+import ModelLoader from './ModelLoader'
 import type { ReconstructionResult, SceneControls, CameraPreset } from '../../types'
 
 interface Scene3DProps {
@@ -136,8 +137,11 @@ function SceneContent({ result }: { result?: ReconstructionResult }) {
         infiniteGrid
       />
 
-      {/* 3D模型 - 暂时注释，等待实现 */}
-      {/* {result && <ModelLoader result={result} />} */}
+      {/* 3D模型 */}
+      {result?.modelUrl && <ModelLoader result={{ 
+        modelUrl: result.modelUrl,
+        metadata: result.metadata
+      }} />}
 
       {/* 性能统计 */}
       {showStats && <Stats />}

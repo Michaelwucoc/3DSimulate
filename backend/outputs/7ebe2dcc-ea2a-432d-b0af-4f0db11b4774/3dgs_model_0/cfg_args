@@ -1,0 +1,7 @@
+
+iterations: 30000
+resolution: -1
+sh_degree: 3
+data_device: cuda
+timestamp: 2025-08-07T16:04:22.649258
+sparse_reconstruction: /Users/wujian/Documents/3DSimulate/backend/outputs/7ebe2dcc-ea2a-432d-b0af-4f0db11b4774/3dgs_model_0/sparse/0

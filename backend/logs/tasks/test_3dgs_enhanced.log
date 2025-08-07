@@ -1,0 +1,76 @@
+2025-08-07 16:00:38,766 - INFO - 开始3D Gaussian Splatting重建任务
+2025-08-07 16:00:38,768 - INFO - 3DGS数据准备完成: /var/folders/x1/vwf1dv5s36b9fh0108m0tmf40000gn/T/tmpfeukt9t_/output/3dgs_data
+2025-08-07 16:00:38,768 - INFO - [16:00:38] Step 'feature_extraction' started
+2025-08-07 16:00:39,264 - INFO - Executing command: colmap feature_extractor --database_path /var/folders/x1/vwf1dv5s36b9fh0108m0tmf40000gn/T/tmpfeukt9t_/output/3dgs_data/database.db --image_path /var/folders/x1/vwf1dv5s36b9fh0108m0tmf40000gn/T/tmpfeukt9t_/output/3dgs_data/images --ImageReader.single_camera 1 --SiftExtraction.use_gpu 1
+2025-08-07 16:00:39,264 - ERROR - Command error: I20250807 16:00:39.147485 7926518 misc.cc:44] 
+==============================================================================
+Feature extraction
+==============================================================================
+I20250807 16:00:39.192006 7926527 sift.cc:721] Creating SIFT GPU feature extractor
+I20250807 16:00:39.257297 7926528 feature_extraction.cc:258] Processed file [1/3]
+I20250807 16:00:39.257323 7926528 feature_extraction.cc:261]   Name:            file_0_test_image_0.jpg
+E20250807 16:00:39.257328 7926528 feature_extraction.cc:265] file_0_test_image_0.jpg BITMAP_ERROR: Failed to read the image file format.
+I20250807 16:00:39.257368 7926528 feature_extraction.cc:258] Processed file [2/3]
+I20250807 16:00:39.257380 7926528 feature_extraction.cc:261]   Name:            file_1_test_image_1.jpg
+E20250807 16:00:39.257385 7926528 feature_extraction.cc:265] file_1_test_image_1.jpg BITMAP_ERROR: Failed to read the image file format.
+I20250807 16:00:39.257447 7926528 feature_extraction.cc:258] Processed file [3/3]
+I20250807 16:00:39.257452 7926528 feature_extraction.cc:261]   Name:            file_2_test_image_2.jpg
+E20250807 16:00:39.257457 7926528 feature_extraction.cc:265] file_2_test_image_2.jpg BITMAP_ERROR: Failed to read the image file format.
+I20250807 16:00:39.257812 7926518 timer.cc:91] Elapsed time: 0.002 [minutes]
+
+2025-08-07 16:00:39,264 - INFO - [16:00:39] Step 'feature_extraction' completed
+2025-08-07 16:00:39,264 - INFO - [16:00:39] Step 'feature_matching' started
+2025-08-07 16:00:45,198 - ERROR - COLMAP处理失败: COLMAP特征匹配失败: I20250807 16:00:39.563275 7926583 misc.cc:44] 
+==============================================================================
+Feature matching
+==============================================================================
+I20250807 16:00:39.581131 7926584 sift.cc:1426] Creating SIFT GPU feature matcher
+E20250807 16:00:39.581470 7926584 logging.h:126] [sift.cc:89] Check failed: max_num_matches > 0 (0 vs. 0)
+E20250807 16:00:39.581483 7926584 sift.cc:1174] Check failed: options_.Check() 
+libc++abi: terminating due to uncaught exception of type std::invalid_argument: [sift.cc:1174] Check failed: options_.Check() 
+*** Aborted at 1754553639 (unix time) try "date -d @1754553639" if you are using GNU date ***
+PC: @                0x0 expn_tab
+*** SIGABRT (@0x18d97d5b0) received by PID 56276 (TID 0x16d777000) stack trace: ***
+    @        0x18d9c0704 _sigtramp
+    @        0x18d9b688c pthread_kill
+    @        0x18d8bd7ac abort
+    @        0x18d96b858 __abort_message
+    @        0x18d95a4bc demangling_terminate_handler()
+    @        0x18d59846c _objc_terminate()
+    @        0x18d96ac2c std::__terminate()
+    @        0x18d96e394 __cxxabiv1::failed_throw()
+    @        0x18d96e33c __cxa_throw
+    @        0x102b06ad8 colmap::LogMessageFatalThrow<>::~LogMessageFatalThrow()
+    @        0x102d425b0 colmap::CreateSiftFeatureMatcher()
+    @        0x102b66ac4 colmap::FeatureMatcherWorker::Run()
+    @        0x102bd04d0 colmap::Thread::RunFunc()
+    @        0x102bd1578 std::__1::__thread_proxy<>()
+    @        0x18d9b6c0c _pthread_start
+
+2025-08-07 16:00:45,198 - ERROR - 3DGS重建失败: COLMAP特征匹配失败: I20250807 16:00:39.563275 7926583 misc.cc:44] 
+==============================================================================
+Feature matching
+==============================================================================
+I20250807 16:00:39.581131 7926584 sift.cc:1426] Creating SIFT GPU feature matcher
+E20250807 16:00:39.581470 7926584 logging.h:126] [sift.cc:89] Check failed: max_num_matches > 0 (0 vs. 0)
+E20250807 16:00:39.581483 7926584 sift.cc:1174] Check failed: options_.Check() 
+libc++abi: terminating due to uncaught exception of type std::invalid_argument: [sift.cc:1174] Check failed: options_.Check() 
+*** Aborted at 1754553639 (unix time) try "date -d @1754553639" if you are using GNU date ***
+PC: @                0x0 expn_tab
+*** SIGABRT (@0x18d97d5b0) received by PID 56276 (TID 0x16d777000) stack trace: ***
+    @        0x18d9c0704 _sigtramp
+    @        0x18d9b688c pthread_kill
+    @        0x18d8bd7ac abort
+    @        0x18d96b858 __abort_message
+    @        0x18d95a4bc demangling_terminate_handler()
+    @        0x18d59846c _objc_terminate()
+    @        0x18d96ac2c std::__terminate()
+    @        0x18d96e394 __cxxabiv1::failed_throw()
+    @        0x18d96e33c __cxa_throw
+    @        0x102b06ad8 colmap::LogMessageFatalThrow<>::~LogMessageFatalThrow()
+    @        0x102d425b0 colmap::CreateSiftFeatureMatcher()
+    @        0x102b66ac4 colmap::FeatureMatcherWorker::Run()
+    @        0x102bd04d0 colmap::Thread::RunFunc()
+    @        0x102bd1578 std::__1::__thread_proxy<>()
+    @        0x18d9b6c0c _pthread_start
+

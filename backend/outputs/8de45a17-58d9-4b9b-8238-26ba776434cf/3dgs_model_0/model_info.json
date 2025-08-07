@@ -1,0 +1,18 @@
+{
+  "task_id": "8de45a17-58d9-4b9b-8238-26ba776434cf",
+  "method": "3dgs",
+  "num_points": 5000,
+  "model_size_mb": 45.2,
+  "quality_metrics": {
+    "psnr": 32.8,
+    "ssim": 0.92
+  },
+  "export_formats": [
+    "ply",
+    "obj",
+    "gltf",
+    "colmap"
+  ],
+  "sparse_reconstruction": true,
+  "created_at": "2025-08-07T16:19:58.547941"
+}

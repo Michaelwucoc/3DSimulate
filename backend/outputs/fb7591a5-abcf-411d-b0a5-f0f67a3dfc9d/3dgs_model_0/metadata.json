@@ -1,0 +1,11 @@
+{
+  "method": "3dgs",
+  "iterations": 30000,
+  "data_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/fb7591a5-abcf-411d-b0a5-f0f67a3dfc9d/3dgs_data",
+  "model_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/fb7591a5-abcf-411d-b0a5-f0f67a3dfc9d/3dgs_model_0",
+  "sparse_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/fb7591a5-abcf-411d-b0a5-f0f67a3dfc9d/3dgs_model_0/sparse/0",
+  "created_at": "2025-08-07T16:07:19.809055",
+  "task_id": "fb7591a5-abcf-411d-b0a5-f0f67a3dfc9d",
+  "quality": "high",
+  "sparse_points": 5000
+}

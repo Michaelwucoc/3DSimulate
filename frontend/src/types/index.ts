@@ -25,29 +25,43 @@ export interface ReconstructionTask {
 
 // 3D重建结果
 export interface ReconstructionResult {
-  id: string
-  modelUrl: string
-  thumbnailUrl: string
-  format: 'ply' | 'obj' | 'gltf' | 'splat' // 支持多种3D格式
-  metadata: {
-    vertices: number
+  modelUrl?: string
+  thumbnailUrl?: string
+  model_path?: string
+  thumbnail_path?: string
+  metadata_path?: string
+  point_cloud_path?: string
+  mesh_path?: string
+  texture_path?: string
+  num_points?: number
+  num_faces?: number
+  model_size_mb?: number
+  psnr?: number
+  ssim?: number
+  lpips?: number
+  render_config?: Record<string, unknown>
+  export_formats?: string[]
+  // 兼容旧格式
+  format?: 'ply' | 'obj' | 'gltf' | 'splat'
+  metadata?: {
+    vertices?: number
     faces?: number
-    points?: number // 用于点云
-    boundingBox: {
+    points?: number
+    boundingBox?: {
       min: [number, number, number]
       max: [number, number, number]
     }
-    cameraPositions: Array<{
+    cameraPositions?: Array<{
       position: [number, number, number]
       rotation: [number, number, number]
       fov: number
     }>
   }
-  statistics: {
-    processingTime: number
-    memoryUsage: number
-    quality: 'low' | 'medium' | 'high'
-    method: 'nerf' | '3dgs'
+  statistics?: {
+    processingTime?: number
+    memoryUsage?: number
+    quality?: 'low' | 'medium' | 'high'
+    method?: 'nerf' | '3dgs'
   }
 }
 

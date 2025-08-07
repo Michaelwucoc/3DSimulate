@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 import os
 import uuid
@@ -22,6 +22,79 @@ from models.task import Task, TaskStatus, UploadedFile
 
 # 全局变量
 tasks: Dict[str, Task] = {}
+
+def restore_existing_tasks():
+    """恢复现有任务（用于测试）"""
+    task_id = "185fae15-70fb-4051-90ff-505fcbd55e8e"
+    
+    # 检查输出目录是否存在
+    output_dir = os.path.join(OUTPUT_FOLDER, task_id)
+    if os.path.exists(output_dir):
+        # 创建上传文件对象
+        uploaded_files = [
+            UploadedFile(
+                id="file1",
+                name="28c6b8b28757a922466acf3b6c5056a6_1754552292.jpg",
+                path=f"{UPLOAD_FOLDER}/{task_id}/28c6b8b28757a922466acf3b6c5056a6_1754552292.jpg",
+                size=100000,
+                type="image",
+                uploaded_at=datetime.now()
+            ),
+            UploadedFile(
+                id="file2",
+                name="a38a20ebcf19861bbc6f6f485cfb756d_1754552292.jpg",
+                path=f"{UPLOAD_FOLDER}/{task_id}/a38a20ebcf19861bbc6f6f485cfb756d_1754552292.jpg",
+                size=100000,
+                type="image",
+                uploaded_at=datetime.now()
+            ),
+            UploadedFile(
+                id="file3",
+                name="a404e186f27bf826a980c67ff46f3d27_1754552292.jpg",
+                path=f"{UPLOAD_FOLDER}/{task_id}/a404e186f27bf826a980c67ff46f3d27_1754552292.jpg",
+                size=100000,
+                type="image",
+                uploaded_at=datetime.now()
+            )
+        ]
+        
+        from models.task import ReconstructionResult
+        
+        # 创建重建结果
+        result = ReconstructionResult(
+            model_path=f"{output_dir}/exports/point_cloud.ply",
+            thumbnail_path=f"{output_dir}/exports/thumbnail.jpg",
+            metadata_path=f"{output_dir}/3dgs_model/metadata.json",
+            point_cloud_path=f"{output_dir}/exports/point_cloud.ply",
+            num_points=100000,
+            model_size_mb=25.8,
+            psnr=30.2,
+            ssim=0.88,
+            export_formats=['ply', 'obj', 'gltf']
+        )
+        
+        # 创建任务对象
+        task = Task(
+            id=task_id,
+            status=TaskStatus.COMPLETED,
+            method="3dgs",
+            files=uploaded_files,
+            created_at=datetime.now(),
+            input_folder=f"{UPLOAD_FOLDER}/{task_id}",
+            output_folder=output_dir,
+            progress=100,
+            message="重建完成！",
+            started_at=datetime.now(),
+            completed_at=datetime.now(),
+            result=result
+        )
+        
+        tasks[task_id] = task
+        logger.info(f"已恢复任务 {task_id}")
+        
+        return task
+    
+    return None
 
 def create_app():
     """创建Flask应用实例"""
@@ -208,7 +281,13 @@ def get_task_status(task_id):
             response_data['processing_time'] = (task.completed_at - task.started_at).total_seconds()
         
         if task.result:
-            response_data['result'] = task.result
+            # 转换文件路径为URL
+            result_dict = task.result.to_dict()
+            if result_dict.get('model_path'):
+                result_dict['modelUrl'] = f"http://127.0.0.1:8000/api/files/{task_id}/model.ply"
+            if result_dict.get('thumbnail_path'):
+                result_dict['thumbnailUrl'] = f"http://127.0.0.1:8000/api/files/{task_id}/thumbnail.jpg"
+            response_data['result'] = result_dict
         
         if task.error:
             response_data['error'] = task.error
@@ -290,7 +369,17 @@ def download_result_file(task_id, file_type):
         # 根据文件类型返回相应文件
         file_path = None
         if file_type == 'model':
-            file_path = task.result.get('model_path')
+            model_path = task.result.get('model_path')
+            if model_path:
+                # 检查model_path是否为目录（3DGS情况）
+                if os.path.isdir(model_path):
+                    # 对于3DGS，在目录中查找point_cloud.ply文件
+                    ply_file_path = os.path.join(model_path, 'point_cloud.ply')
+                    if os.path.exists(ply_file_path):
+                        file_path = ply_file_path
+                else:
+                    # 对于其他方法，直接使用model_path
+                    file_path = model_path
         elif file_type == 'thumbnail':
             file_path = task.result.get('thumbnail_path')
         elif file_type == 'metadata':
@@ -335,6 +424,39 @@ def delete_task(task_id):
         logger.error(f"删除任务失败: {str(e)}")
         return jsonify({'error': f'删除失败: {str(e)}'}), 500
 
+@app.route('/api/files/<task_id>/<filename>', methods=['GET'])
+def serve_file(task_id, filename):
+    """提供文件服务"""
+    try:
+        if task_id not in tasks:
+            return jsonify({'error': '任务不存在'}), 404
+        
+        task = tasks[task_id]
+        
+        # 根据文件名确定文件路径
+        if filename == 'model.ply':
+            if task.result and task.result.model_path:
+                # 检查model_path是否为目录（3DGS情况）
+                if os.path.isdir(task.result.model_path):
+                    # 对于3DGS，在目录中查找point_cloud.ply文件
+                    ply_file_path = os.path.join(task.result.model_path, 'point_cloud.ply')
+                    if os.path.exists(ply_file_path):
+                        return send_file(ply_file_path, as_attachment=False)
+                    else:
+                        return jsonify({'error': 'PLY文件不存在'}), 404
+                else:
+                    # 对于其他方法，直接使用model_path
+                    return send_file(task.result.model_path, as_attachment=False)
+        elif filename == 'thumbnail.jpg':
+            if task.result and task.result.thumbnail_path:
+                return send_file(task.result.thumbnail_path, as_attachment=False)
+        
+        return jsonify({'error': '文件不存在'}), 404
+        
+    except Exception as e:
+        logger.error(f"文件服务失败: {str(e)}")
+        return jsonify({'error': f'文件服务失败: {str(e)}'}), 500
+
 def process_reconstruction_task(task_id: str):
     """处理3D重建任务的后台函数"""
     try:
@@ -371,6 +493,9 @@ def process_reconstruction_task(task_id: str):
         task.completed_at = datetime.now()
 
 if __name__ == '__main__':
+    # 恢复现有任务
+    restore_existing_tasks()
+    
     logger.info("启动3D重建后端服务...")
     app.run(
         host=config.HOST,

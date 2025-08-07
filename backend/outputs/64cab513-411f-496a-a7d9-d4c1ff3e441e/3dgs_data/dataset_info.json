@@ -1,0 +1,34 @@
+{
+  "images_dir": "/Users/wujian/Documents/3DSimulate/backend/outputs/64cab513-411f-496a-a7d9-d4c1ff3e441e/3dgs_data/images",
+  "num_images": 3,
+  "source_files": [
+    {
+      "id": "f092e536-7dba-4fda-8968-afee755c0304",
+      "name": "28c6b8b28757a922466acf3b6c5056a6_1754552750.jpg",
+      "path": "/Users/wujian/Documents/3DSimulate/backend/uploads/64cab513-411f-496a-a7d9-d4c1ff3e441e/28c6b8b28757a922466acf3b6c5056a6_1754552750.jpg",
+      "size": 165227,
+      "type": "image",
+      "mime_type": null,
+      "uploaded_at": "2025-08-07T15:45:50.715889"
+    },
+    {
+      "id": "e99424d9-4536-4ff4-857c-02a14649f275",
+      "name": "a38a20ebcf19861bbc6f6f485cfb756d_1754552750.jpg",
+      "path": "/Users/wujian/Documents/3DSimulate/backend/uploads/64cab513-411f-496a-a7d9-d4c1ff3e441e/a38a20ebcf19861bbc6f6f485cfb756d_1754552750.jpg",
+      "size": 147236,
+      "type": "image",
+      "mime_type": null,
+      "uploaded_at": "2025-08-07T15:45:50.716402"
+    },
+    {
+      "id": "8fc43c8b-6dac-4221-abba-0debf872e825",
+      "name": "a404e186f27bf826a980c67ff46f3d27_1754552750.jpg",
+      "path": "/Users/wujian/Documents/3DSimulate/backend/uploads/64cab513-411f-496a-a7d9-d4c1ff3e441e/a404e186f27bf826a980c67ff46f3d27_1754552750.jpg",
+      "size": 141742,
+      "type": "image",
+      "mime_type": null,
+      "uploaded_at": "2025-08-07T15:45:50.716626"
+    }
+  ],
+  "created_at": "2025-08-07T15:45:50.757752"
+}
