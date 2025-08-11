@@ -10930,3 +10930,23 @@ I20250807 16:20:01.097800 7994956 timer.cc:91] Elapsed time: 0.007 [minutes]
 2025-08-07 16:20:02,314 - performance - INFO - Completed: 3dgs_reconstruction (Duration: 3.74s)
 2025-08-07 16:20:02,314 - 3d_reconstruction - INFO - [Task 8de45a17-58d9-4b9b-8238-26ba776434cf] 3DGS重建完成，耗时: 3.74秒
 2025-08-07 16:20:02,315 - 3d_reconstruction - INFO - 任务 8de45a17-58d9-4b9b-8238-26ba776434cf 处理完成
+2025-08-11 12:15:16,271 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,276 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,368 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,372 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,572 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,575 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,931 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:16,934 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:15:17,050 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:17,053 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:15:17,242 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:15:17,245 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:31:14,948 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:31:14,952 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,147 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,150 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,523 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,526 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,710 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-11 12:31:15,713 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
