@@ -10950,3 +10950,7 @@ I20250807 16:20:01.097800 7994956 timer.cc:91] Elapsed time: 0.007 [minutes]
 2025-08-11 12:31:15,526 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
 2025-08-11 12:31:15,710 - file_service - WARNING - blender 不可用，某些转换功能可能受限
 2025-08-11 12:31:15,713 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-13 11:53:48,633 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-13 11:53:48,637 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
+2025-08-13 11:54:20,566 - file_service - WARNING - blender 不可用，某些转换功能可能受限
+2025-08-13 11:54:20,568 - file_service - WARNING - meshlab 不可用，某些转换功能可能受限
